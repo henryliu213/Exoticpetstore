@@ -7,6 +7,9 @@ db = pymysql.connect(
 
 
 cursor = db.cursor()
+
+
+
 # cursor.execute("Drop database petshop")
 # cursor.execute("Show databases")
 # clist = [i for i in cursor.fetchall()] 
@@ -45,9 +48,9 @@ curpets.execute("""Create trigger if not exists atcapacity
 
 curpets.execute("""Create procedure if not exists getOrderInfo(in soid int)
                 begin
-                    select a.name as info, count(a.aid) as count from orders O, accessories A where O.oid = soid and O.aid = A.aid group by a.name 
+                    select a.name as info, count(a.aid) as count from contains C, accessories A where C.aid = A.aid and C.oid = soid group by a.name 
                     Union 
-                    select p.type as info, count(p.pid) as count from orders O, pets P where O.oid = soid and o.pid = p.pid group by p.type;
+                    select p.type as info, count(p.pid) as count from pets P, contains C where  C.pid = p.pid and C.oid = soid group by p.type;
                 end
 """)
 
@@ -55,18 +58,38 @@ n = 'po'
 t = 'panda'
 a = 55
 curpets.execute(" insert into pets (name, type, age) values ('fred','zebra', 2),(%s,%s,%s)", (n,t,a))
+curpets.execute(" insert into accessories (name) values ('food')")
+curpets.execute(" insert into orders (odate) values ('2024-11-11')")
+curpets.execute(" insert into contains (oid, aid) values (1, 1)")
+curpets.execute(" insert into contains (oid, pid) values (1, 1)")
+
+
 
 curpets.execute("select * from pets")
 clist = [i for i in curpets.fetchall()] 
 print(clist)
+curpets.execute("select * from accessories")
+clist = [i for i in curpets.fetchall()] 
+print(clist)
+
+curpets.execute("select a.name as info, count(a.aid) as count from contains C, accessories A where C.aid = A.aid and C.oid = 1 group by a.name ")
+clist = [i for i in curpets.fetchall()] 
+print(clist)
+
+curpets.callproc("getOrderInfo", (1,))
+clist = [i for i in curpets.fetchall()] 
+print(clist)
+
+
+
 dbpets.commit()
 dbpets.close()
 
 #DELETE BELOW WHEN DONE, KEEP commit and close though.  
 
-cursor.execute("Drop database petshop")
-cursor.execute("Show databases")
-clist = [i for i in cursor.fetchall()] 
+# cursor.execute("Drop database petshop")
+# cursor.execute("Show databases")
+# clist = [i for i in cursor.fetchall()] 
 # print(clist)
 db.commit()
 db.close()
