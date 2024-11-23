@@ -10,10 +10,10 @@ cursor = db.cursor()
 
 
 
-# cursor.execute("Drop database petshop")
-# cursor.execute("Show databases")
-# clist = [i for i in cursor.fetchall()] 
-# print(clist)
+cursor.execute("Drop database petshop")
+cursor.execute("Show databases")
+clist = [i for i in cursor.fetchall()] 
+print(clist)
 
 cursor.execute("CREATE DATABASE if not exists petshop ")
 cursor.execute("Show databases")
@@ -72,9 +72,7 @@ curpets.execute("select * from accessories")
 clist = [i for i in curpets.fetchall()] 
 print(clist)
 
-curpets.execute("select a.name as info, count(a.aid) as count from contains C, accessories A where C.aid = A.aid and C.oid = 1 group by a.name ")
-clist = [i for i in curpets.fetchall()] 
-print(clist)
+
 
 curpets.callproc("getOrderInfo", (1,))
 clist = [i for i in curpets.fetchall()] 
