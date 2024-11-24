@@ -105,6 +105,17 @@ class PetStoreGUI:
         back_button.pack(pady=10)
     
     def store_screen(self):
+
+
+        curpets.execute("select * from pets where pid not in (select pid from contains)")
+        clist = [i for i in curpets.fetchall()] 
+        print("\nPets: ")
+        print(clist)
+        curpets.execute("select * from accessories where aid not in (select aid from contains)")
+        clist = [i for i in curpets.fetchall()] 
+        print("\nAccessories: ")
+        print(clist)
+        print('')
         """Display the pet store interface with pets and accessories."""
         self.clear_window()
         self.available_petspets = get_available_pets()
@@ -258,9 +269,9 @@ class PetStoreGUI:
                 self.cart.clear()  # Empty the cart after purchase
                 dbpets.commit()
 
-                self.available_accessories = get_available_accs()
-                self.available_pets = get_available_pets()
-
+                # self.available_accessories = get_available_accs()
+                # self.available_pets = get_available_pets()
+                self.store_screen()
             #TODO UPDATE ORDERS, NEED TRANSACTION, I THINK MOsTLY DONE BUT SOME ERRORS with accessories
                         #Create order, add contains for each item in cart, and places TRANSACTION!!!
         else:
