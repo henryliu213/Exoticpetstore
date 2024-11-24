@@ -40,7 +40,7 @@ curpets.execute("""Create trigger if not exists atcapacity
                     before insert on pets 
                 for each row 
                 Begin 
-                    if (select count(*) from pets p) >= %s  
+                    if (select count(*) from pets p where p.pid not in (select pid from contains)) >= %s  
                     then signal sqlstate '45000'
                     set message_text = "store too small";
                     end if;
@@ -54,31 +54,31 @@ curpets.execute("""Create procedure if not exists getOrderInfo(in soid int)
                 end
 """)
 
-# curpets.executemany(" insert into pets (name, type, age) values (%s,%s,%s)", 
-#                 [('zoe','zebra',4),
-#                 ('samantha','snake',2),
-#                 ('fred', 'frog', 1),
-#                 ('laika', 'dog', 0),
-#                 ('lucy', 'dog', 2),
-#                 ('finnegan', 'dog', 11),
-#                 ('oreo', 'cat', 5),
-#                 ('tom', 'cat', 0),
-#                 ('mousy', 'mouse', 0),
-#                 ('lia', 'lion', 1)])
-
-curpets.executemany("insert into pets (name, type, age) values (%s,%s,%s)", 
+curpets.executemany(" insert into pets (name, type, age) values (%s,%s,%s)", 
                 [('zoe','zebra',4),
                 ('samantha','snake',2),
                 ('fred', 'frog', 1),
                 ('laika', 'dog', 0),
-                ('lucy', 'dog', 2)])
-curpets.executemany("insert into accessories (name) values (%s)", 
-                    [("food"),
-                     ("food"),
-                     ("leash"),
-                     ("leash"),
-                     ("leash"),
-                     ("collar")])
+                ('lucy', 'dog', 2),
+                ('finnegan', 'dog', 11),
+                ('oreo', 'cat', 5),
+                ('tom', 'cat', 0),
+                ('mousy', 'mouse', 0),
+                ('lia', 'lion', 1)])
+
+# curpets.executemany("insert into pets (name, type, age) values (%s,%s,%s)", 
+#                 [('zoe','zebra',4),
+#                 ('samantha','snake',2),
+#                 ('fred', 'frog', 1),
+#                 ('laika', 'dog', 0),
+#                 ('lucy', 'dog', 2)])
+# curpets.executemany("insert into accessories (name) values (%s)", 
+#                     [("food"),
+#                      ("food"),
+#                      ("leash"),
+#                      ("leash"),
+#                      ("leash"),
+#                      ("collar")])
 
 
 curpets.execute("select * from pets")
