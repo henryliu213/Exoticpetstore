@@ -4,7 +4,7 @@ import pymysql
 dbpets = pymysql.connect(
     host = 'localhost',
     user = 'root',
-    password = 'dr4g0n123!',
+    password = '',
     database = 'petshop')
 curpets = dbpets.cursor()
 
@@ -160,10 +160,9 @@ class PetStoreGUI:
             pet_age = pet_age_entry.get()
 
             if pet_type and pet_name and pet_age:
-                new_pet = {'type': pet_type, 'name': pet_name, 'age': pet_age}
                 #TODO ADD TO DB 
                 try:
-                    #self.available_pets.append(new_pet['type']) #THIS SHOULD BE REPLACED BY GETTING FROM DB, WE CAN CREATE A FUNC
+                    #self.available_pets.append(new_pet['type']) #THIS SHOULD BE GOOD
                     curpets.execute("insert into pets (name, type, age) values (%s, %s, %s)", (pet_name, pet_type, pet_age))
                     messagebox.showinfo("Success", f"{pet_name} the {pet_type} has been added!")
                     dbpets.commit()
@@ -234,7 +233,7 @@ class PetStoreGUI:
             finally:
                 self.cart.clear()  # Empty the cart after purchase
 
-            #TODO UPDATE ORDERS, NEED TRANSACTION, 
+            #TODO UPDATE ORDERS, NEED TRANSACTION, I THINK MOsTLY DONE BUT SOME ERRORS with accessories
                         #Create order, add contains for each item in cart, and places TRANSACTION!!!
         else:
             messagebox.showerror("Error", "Your cart is empty! Add some items first.")
