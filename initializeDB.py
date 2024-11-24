@@ -2,15 +2,14 @@ import pymysql
 db = pymysql.connect(
     host = 'localhost',
     user = 'root',
-    password = '')
-    #database = 'petshop')
+    password = 'MyNewPass')
 #password = 'MyNewPass'
 
 cursor = db.cursor()
 
 
 
-#cursor.execute("Drop database petshop")
+cursor.execute("Drop database petshop")
 # cursor.execute("Show databases")
 # clist = [i for i in cursor.fetchall()] 
 # print(clist)
@@ -23,7 +22,7 @@ clist = [i for i in cursor.fetchall()]
 dbpets = pymysql.connect(
     host = 'localhost',
     user = 'root',
-    password = '',
+    password = 'MyNewPass',
     database = 'petshop')
 
 #ALL CODE FOR MAKING TABLES HERE 
@@ -66,19 +65,19 @@ curpets.execute("""Create procedure if not exists getOrderInfo(in soid int)
 #                 ('mousy', 'mouse', 0),
 #                 ('lia', 'lion', 1)])
 
-# curpets.executemany("insert into pets (name, type, age) values (%s,%s,%s)", 
-#                 [('zoe','zebra',4),
-#                 ('samantha','snake',2),
-#                 ('fred', 'frog', 1),
-#                 ('laika', 'dog', 0),
-#                 ('lucy', 'dog', 2)])
-# curpets.executemany("insert into accessories (name) values (%s)", 
-#                     [("food"),
-#                      ("food"),
-#                      ("leash"),
-#                      ("leash"),
-#                      ("leash"),
-#                      ("collar")])
+curpets.executemany("insert into pets (name, type, age) values (%s,%s,%s)", 
+                [('zoe','zebra',4),
+                ('samantha','snake',2),
+                ('fred', 'frog', 1),
+                ('laika', 'dog', 0),
+                ('lucy', 'dog', 2)])
+curpets.executemany("insert into accessories (name) values (%s)", 
+                    [("food"),
+                     ("food"),
+                     ("leash"),
+                     ("leash"),
+                     ("leash"),
+                     ("collar")])
 
 
 curpets.execute("select * from pets")
