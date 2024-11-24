@@ -35,15 +35,16 @@ curpets.execute("CREATE TABLE if not exists orders (oid int not null auto_increm
 curpets.execute("CREATE TABLE if not exists accessories (aid int not null auto_increment, name varchar(255), primary key (aid))")
 curpets.execute("CREATE TABLE if not exists contains (oid int, aid int unique, pid int unique, foreign key(oid) references orders(oid) on delete cascade, foreign key(aid) references accessories(aid) on delete cascade, foreign key(pid) references pets(pid) on delete cascade)")
 curpets.execute("CREATE TABLE if not exists places (cid int, oid int, Foreign key(cid) references customers (cid) on delete cascade, foreign key(oid) references orders(oid) on delete cascade)")
+curpets.execute("Create Table if not exists storecapacity (id int, capacity int, primary key(id)) ")
 curpets.execute("""Create trigger if not exists atcapacity
                     before insert on pets 
                 for each row 
                 Begin 
-                    if (select count(*) from pets p where p.pid not in (select pid from contains)) >= %s  
+                    if (select count(*) from pets p where p.pid not in (select pid from contains)) >= (select capacity from storecapacity)  
                     then signal sqlstate '45000'
                     set message_text = "store too small";
                     end if;
-                end;""", STORECAPACITY)
+                end;""")
 
 curpets.execute("""Create procedure if not exists getOrderInfo(in soid int)
                 begin
@@ -64,7 +65,7 @@ curpets.execute("""Create procedure if not exists getOrderInfo(in soid int)
 #                 ('tom', 'cat', 0),
 #                 ('mousy', 'mouse', 0),
 #                 ('lia', 'lion', 1)])
-
+curpets.execute("insert into storecapacity (id, capacity) values (1,10)")
 curpets.executemany("insert into pets (name, type, age) values (%s,%s,%s)", 
                 [('zoe','zebra',4),
                 ('samantha','snake',2),
@@ -79,6 +80,7 @@ curpets.executemany("insert into accessories (name) values (%s)",
                      ("leash"),
                      ("collar")])
 
+# curpets.execute("update storecapacity set capacity = capacity+%s where id = 1", ('1',))
 
 curpets.execute("select * from pets")
 clist = [i for i in curpets.fetchall()] 
@@ -103,6 +105,11 @@ print(clist)
 curpets.execute("select * from customers")
 clist = [i for i in curpets.fetchall()] 
 print("\nCustomers: ")
+print(clist)
+
+curpets.execute("select * from storecapacity")
+clist = [i for i in curpets.fetchall()] 
+print("\nStore Capacity: ")
 print(clist)
 
 

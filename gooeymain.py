@@ -9,12 +9,28 @@ dbpets = pymysql.connect(
 curpets = dbpets.cursor()
 
 def get_available_pets():
-    curpets.execute("select DISTINCT p.type from pets p where p.pid not in (select c.pid from contains c)")
-    clist = [(i,1) for i in curpets.fetchall()] 
-    return clist
+    curpets.execute("select distinct p.type from pets p where p.pid not in (select c.pid from contains c where c.pid is not null)") # comment out distinct
+    clisty = [(i,1) for i in curpets.fetchall()] 
+    # print("first clist: ")
+    # print(clisty)
+    curpets.execute("select * from contains")
+    clist = [i for i in curpets.fetchall()] 
+    # print("\nContains: ")
+    # print(clist)
+    curpets.execute("select * from pets")
+    clist = [i for i in curpets.fetchall()] 
+    # print("\nPets: ")
+    # print(clist)
+    curpets.execute("select * from accessories")
+    clist = [i for i in curpets.fetchall()] 
+    # print("\nAccessories: ")
+    # print(clist)
+
+    
+    return clisty
 
 def get_available_accs():
-    curpets.execute("select DISTINCT a.name from accessories a where a.aid not in (select c.aid from contains c)")
+    curpets.execute("select distinct a.name from accessories a where a.aid not in (select c.aid from contains c where c.aid is not null)") # comment out distinct
     clist = [(i,0) for i in curpets.fetchall()] 
     return clist
 
@@ -25,11 +41,13 @@ class PetStoreGUI:
         self.cart = []
         #self.available_pets = ['Dog', 'Cat', 'Bird', 'Fish'] #TODO Change to get from db SHOULD BE DONE
         self.available_pets = get_available_pets()
-        print(self.available_pets)
+        # print("self available pets is : ")
+        # print(self.available_pets)
 
         #self.available_accessories = ['Collar', 'Leash', 'Bed', 'Food', 'Toy'] #TODO Get from db SHOULD BE DONE
         self.available_accessories = get_available_accs()
-        print(self.available_accessories)
+        # print("self. availabel access is : ")
+        # print(self.available_accessories)
 
         self.user_name = ""
 
@@ -60,10 +78,10 @@ class PetStoreGUI:
         try:
             curpets.execute("insert into customers (name) values (%s)", self.user_name)
             dbpets.commit()
-            print("Added: " + self.user_name)
+            # print("Added: " + self.user_name)
         except:
             dbpets.rollback()
-            print("Username is taken")
+            # print("Username is taken")
 
         self.store_screen()
         
@@ -92,33 +110,35 @@ class PetStoreGUI:
         clist = [i for i in curpets.fetchall()] 
         
         for orderid in clist: 
-            order_button = tk.Button(self.root, text=orderid, command=lambda orderid=orderid: showorderdet(orderid))
+            order_button = tk.Button(self.root, text=orderid, command=lambda orderid=orderid: showorderdet(orderid, order_button))
             order_button.pack(pady=5)
-        def showorderdet(orderid):
+        def showorderdet(orderid, but):
+            #but.config(state = tk.DISABLED) CAN'T GET IT WORKING 
             curpets.callproc("getOrderInfo", (orderid,))
             clist = [i for i in curpets.fetchall()] 
-            label = tk.Label(root, text=f"{clist}", font=("Arial", 14))
-            label.pack(pady=5)
+            framey = tk.Frame(self.root)
+            framey.pack(pady = 5)
+            label = tk.Label(framey, text=f"{clist}", font=("Arial", 14))
+            label.pack(padx=5, side = 'left')
+            moreinfo_but = tk.Button(framey, text = 'Pet Info', command = lambda oid = orderid: petdetails(oid, framey, moreinfo_but))
+            moreinfo_but.pack(padx = 5, side = 'top')
+        def petdetails(oid, framey,but):
+            #but.config(state = tk.DISABLED)
+            # print(oid)
+            curpets.execute("select p.name, p.age from pets p, contains c where c.pid = p.pid and c.oid = %s", oid)
+            clist = [i for i in curpets.fetchall()] 
+            label = tk.Label(framey, text=f"{clist}", font=("Arial", 14))
+            label.pack(pady=5, side = "bottom")
+            # print("hello")
 
 
         back_button = tk.Button(self.root, text="Back to Store", command=self.store_screen)
         back_button.pack(pady=10)
     
     def store_screen(self):
-
-
-        curpets.execute("select * from pets where pid not in (select pid from contains)")
-        clist = [i for i in curpets.fetchall()] 
-        print("\nPets: ")
-        print(clist)
-        curpets.execute("select * from accessories where aid not in (select aid from contains)")
-        clist = [i for i in curpets.fetchall()] 
-        print("\nAccessories: ")
-        print(clist)
-        print('')
         """Display the pet store interface with pets and accessories."""
         self.clear_window()
-        self.available_petspets = get_available_pets()
+        self.available_pets = get_available_pets()
         self.available_accessories = get_available_accs()
         # Display available pets
         pet_label = tk.Label(self.root, text="Available Pets:", font=("Arial", 14))
@@ -156,6 +176,34 @@ class PetStoreGUI:
         add_pet_button = tk.Button(self.root, text="Add a New Pet", command=self.add_pet)
         add_pet_button.pack(pady=10)
 
+        #Store got bigger
+        def increasecap(Increase):
+            i = Increase.get()
+            if int(i)>0:
+                try:
+                    curpets.execute("update storecapacity set capacity = capacity+%s where id = 1", i)
+                    curpets.execute("select capacity from storecapacity")
+                    clist = curpets.fetchall()[0]
+                    messagebox.showinfo("Success", f"New store capacity is {clist}",)
+                    # print(i)
+
+                except:
+                    # print('exception')
+                    messagebox.showinfo("Error","failed")
+
+                    dbpets.rollback()
+                finally: 
+                    dbpets.commit()
+            else:
+                messagebox.showerror("Error", "Increase by a positive amount")
+
+
+        Increase = tk.Entry(self.root, width=30)
+        lab = tk.Button(self.root, text = 'Increase store capacity by', command = lambda inc=Increase: increasecap(Increase))
+        Increase.pack(pady=10)
+        lab.pack(pady=5)
+        
+
     def add_pet(self):
         """Allow the user to add a new pet to the pet store."""
         self.clear_window()
@@ -192,6 +240,7 @@ class PetStoreGUI:
                     dbpets.commit()
                     self.store_screen()
                 except:
+                    messagebox.showerror("error", 'store too full')
                     dbpets.rollback()
             else:
                 messagebox.showerror("Error", "All fields must be filled in.")
@@ -204,8 +253,8 @@ class PetStoreGUI:
 
     def add_to_cart(self, item):
         """Add a pet or accessory to the cart."""
-        print("item is: ")
-        print(item)
+        # print("item is: ")
+        # print(item)
         self.cart.append(item)
         messagebox.showinfo("Added to Cart", f"{item} has been added to your cart.")
 
@@ -234,8 +283,8 @@ class PetStoreGUI:
             # messagebox.showinfo("Purchase Complete", f"Thank you for your purchase!\n\n{cart_contents}")
 
             try:
-                print('cart')
-                print(self.cart)
+                # print('cart')
+                # print(self.cart)
                 curpets.execute("insert into orders (odate) values ('2024-11-23')") #try insert into orders#TODO maybe make type datetime, find datetime
                 #need to have order id to be able to update places and contains
                 curpets.execute("select * from orders where oid = %s", (curpets.lastrowid,))
@@ -247,18 +296,18 @@ class PetStoreGUI:
                 curpets.execute("insert into places (cid, oid) values (%s, %s)", (cid, oid)) #try insert into places
 
                 for item in self.cart: #insert into contains, TODO allow insert accessory (check for whether it is accessory or pet)
-                    print(" item[0][0] in buying is: ")
-                    print(item[0][0])
-                    #print("hi" +item[0])
+                    # print(" item[0][0] in buying is: ")
+                    # print(item[0][0])
+                    # #print("hi" +item[0])
                     #curpets.execute("select * from pets where type = %s limit 1", item[0])
-                    #Acurpets.execute("select * from pets where type = %s and pid not in (select pid from contains)", item[0])
+                    #curpets.execute("select * from pets where type = %s and pid not in (select pid from contains)", item[0])
                     if item[1] == 1: #pets
-                        curpets.execute("select * from pets where type = %s and pid not in (select pid from contains)", item[0][0])
+                        curpets.execute("select * from pets where type = %s and pid not in (select c.pid from contains c where c.pid is not null)", item[0][0])
                         pid = curpets.fetchone()[0]
                         curpets.execute("insert into contains (oid, pid) values (%s,%s)", (oid, pid))
                     if item[1] == 0:
-                        print("mde it here")
-                        curpets.execute("select * from accessories where name = %s and aid not in (select aid from contains)", item[0][0])
+                        # print("mde it here")
+                        curpets.execute("select * from accessories where name = %s and aid not in (select c.aid from contains c where c.aid is not null)", item[0][0])
                         aid = curpets.fetchone()[0]
                         curpets.execute("insert into contains (oid, aid) values (%s,%s)", (oid, aid))
                 messagebox.showinfo("Purchase Complete", f"Thank you for your purchase!\n")#had included {self.cart}"
@@ -271,9 +320,12 @@ class PetStoreGUI:
 
                 # self.available_accessories = get_available_accs()
                 # self.available_pets = get_available_pets()
+                # print("hello")
+                # print(get_available_pets())
+                # print("bye")
                 self.store_screen()
-            #TODO UPDATE ORDERS, NEED TRANSACTION, I THINK MOsTLY DONE BUT SOME ERRORS with accessories
-                        #Create order, add contains for each item in cart, and places TRANSACTION!!!
+                # print('store screen called')
+            #TODO Still probelsm will displaying screen, accessories fixed. 
         else:
             messagebox.showerror("Error", "Your cart is empty! Add some items first.")
     
