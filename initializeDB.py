@@ -2,18 +2,18 @@ import pymysql
 db = pymysql.connect(
     host = 'localhost',
     user = 'root',
-    password = 'MyNewPass')
+    password = 'dr4g0n123!')
     #database = 'petshop')
-
+#password = 'MyNewPass'
 
 cursor = db.cursor()
 
 
 
 cursor.execute("Drop database petshop")
-cursor.execute("Show databases")
-clist = [i for i in cursor.fetchall()] 
-print(clist)
+# cursor.execute("Show databases")
+# clist = [i for i in cursor.fetchall()] 
+# print(clist)
 
 cursor.execute("CREATE DATABASE if not exists petshop ")
 cursor.execute("Show databases")
@@ -23,18 +23,18 @@ clist = [i for i in cursor.fetchall()]
 dbpets = pymysql.connect(
     host = 'localhost',
     user = 'root',
-    password = 'MyNewPass',
+    password = 'dr4g0n123!',
     database = 'petshop')
 
 #ALL CODE FOR MAKING TABLES HERE 
 STORECAPACITY = 10
 
 curpets = dbpets.cursor()
-curpets.execute("CREATE TABLE if not exists customers (cid int not null auto_increment, name varchar(255) not null, primary key (cid))")
+curpets.execute("CREATE TABLE if not exists customers (cid int not null auto_increment, name varchar(255) not null unique, primary key (cid))")
 curpets.execute("CREATE TABLE if not exists pets (pid int not null auto_increment, name varchar(255) not null, type varchar(255), age int check(age >= 0), primary key (pid))")
 curpets.execute("CREATE TABLE if not exists orders (oid int not null auto_increment, odate DATE, primary key (oid))")
 curpets.execute("CREATE TABLE if not exists accessories (aid int not null auto_increment, name varchar(255), primary key (aid))")
-curpets.execute("CREATE TABLE if not exists contains (oid int, aid int, pid int, foreign key(oid) references orders(oid) on delete cascade, foreign key(aid) references accessories(aid) on delete cascade, foreign key(pid) references pets(pid) on delete cascade)")
+curpets.execute("CREATE TABLE if not exists contains (oid int, aid int unique, pid int unique, foreign key(oid) references orders(oid) on delete cascade, foreign key(aid) references accessories(aid) on delete cascade, foreign key(pid) references pets(pid) on delete cascade)")
 curpets.execute("CREATE TABLE if not exists places (cid int, oid int, Foreign key(cid) references customers (cid) on delete cascade, foreign key(oid) references orders(oid) on delete cascade)")
 curpets.execute("""Create trigger if not exists atcapacity
                     before insert on pets 
@@ -54,29 +54,65 @@ curpets.execute("""Create procedure if not exists getOrderInfo(in soid int)
                 end
 """)
 
-n = 'po'
-t = 'panda'
-a = 55
-curpets.execute(" insert into pets (name, type, age) values ('fred','zebra', 2),(%s,%s,%s)", (n,t,a))
-curpets.execute(" insert into accessories (name) values ('food')")
-curpets.execute(" insert into orders (odate) values ('2024-11-11')")
-curpets.execute(" insert into contains (oid, aid) values (1, 1)")
-curpets.execute(" insert into contains (oid, pid) values (1, 1)")
+# curpets.executemany(" insert into pets (name, type, age) values (%s,%s,%s)", 
+#                 [('zoe','zebra',4),
+#                 ('samantha','snake',2),
+#                 ('fred', 'frog', 1),
+#                 ('laika', 'dog', 0),
+#                 ('lucy', 'dog', 2),
+#                 ('finnegan', 'dog', 11),
+#                 ('oreo', 'cat', 5),
+#                 ('tom', 'cat', 0),
+#                 ('mousy', 'mouse', 0),
+#                 ('lia', 'lion', 1)])
 
+curpets.executemany("insert into pets (name, type, age) values (%s,%s,%s)", 
+                [('zoe','zebra',4),
+                ('samantha','snake',2),
+                ('fred', 'frog', 1),
+                ('laika', 'dog', 0),
+                ('lucy', 'dog', 2)])
+curpets.executemany("insert into accessories (name) values (%s)", 
+                    [("food"),
+                     ("food"),
+                     ("leash"),
+                     ("leash"),
+                     ("leash"),
+                     ("collar")])
 
 
 curpets.execute("select * from pets")
 clist = [i for i in curpets.fetchall()] 
+print("\nPets: ")
 print(clist)
 curpets.execute("select * from accessories")
 clist = [i for i in curpets.fetchall()] 
+print("\nAccessories: ")
 print(clist)
-
-
-
-curpets.callproc("getOrderInfo", (1,))
+curpets.execute("select * from orders")
 clist = [i for i in curpets.fetchall()] 
+print("\nOrders: ")
 print(clist)
+curpets.execute("select * from places")
+clist = [i for i in curpets.fetchall()] 
+print("\nPlaces: ")
+print(clist)
+curpets.execute("select * from contains")
+clist = [i for i in curpets.fetchall()] 
+print("\nContains: ")
+print(clist)
+curpets.execute("select * from customers")
+clist = [i for i in curpets.fetchall()] 
+print("\nCustomers: ")
+print(clist)
+
+
+
+
+# curpets.callproc("getOrderInfo", (1,))
+# clist = [i for i in curpets.fetchall()] 
+# print("\nOrder 1: ")
+# print(clist)
 
 
 
@@ -91,6 +127,7 @@ dbpets.close()
 # print(clist)
 db.commit()
 db.close()
+
 
 
 
