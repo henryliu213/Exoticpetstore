@@ -120,8 +120,20 @@ class PetStoreGUI:
             framey.pack(pady = 5)
             label = tk.Label(framey, text=f"{clist}", font=("Arial", 14))
             label.pack(padx=5, side = 'left')
+            cancel = tk.Button(framey, text = 'Cancel order', command = lambda oid = orderid: cancelord(oid, framey))
+            cancel.pack(padx = 5, side = 'left')
             moreinfo_but = tk.Button(framey, text = 'Pet Info', command = lambda oid = orderid: petdetails(oid, framey, moreinfo_but))
             moreinfo_but.pack(padx = 5, side = 'top')
+        def cancelord(oid, oldbut):
+            try:
+                curpets.execute("delete from orders where oid = %s", oid)
+                oldbut.pack_forget()
+                messagebox.showinfo("Success", "cancellled order ")
+            except:
+                dbpets.rollback()
+            finally:
+                dbpets.commit()
+            
         def petdetails(oid, framey,but):
             #but.config(state = tk.DISABLED)
             # print(oid)
