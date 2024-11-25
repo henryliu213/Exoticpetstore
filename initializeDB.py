@@ -53,25 +53,27 @@ curpets.execute("""Create procedure if not exists getOrderInfo(in soid int)
                     select p.type as info, count(p.pid) as count from pets P, contains C where  C.pid = p.pid and C.oid = soid group by p.type;
                 end
 """)
-
-# curpets.executemany(" insert into pets (name, type, age) values (%s,%s,%s)", 
-#                 [('zoe','zebra',4),
-#                 ('samantha','snake',2),
-#                 ('fred', 'frog', 1),
-#                 ('laika', 'dog', 0),
-#                 ('lucy', 'dog', 2),
-#                 ('finnegan', 'dog', 11),
-#                 ('oreo', 'cat', 5),
-#                 ('tom', 'cat', 0),
-#                 ('mousy', 'mouse', 0),
-#                 ('lia', 'lion', 1)])
 curpets.execute("insert into storecapacity (id, capacity) values (1,10)")
-curpets.executemany("insert into pets (name, type, age) values (%s,%s,%s)", 
+
+
+
+curpets.executemany(" insert into pets (name, type, age) values (%s,%s,%s)", 
                 [('zoe','zebra',4),
                 ('samantha','snake',2),
                 ('fred', 'frog', 1),
                 ('laika', 'dog', 0),
-                ('lucy', 'dog', 2)])
+                ('lucy', 'dog', 2),
+                ('finnegan', 'dog', 11),
+                ('oreo', 'cat', 5),
+                ('tom', 'cat', 0),
+                ('mousy', 'mouse', 0),
+                ('lia', 'lion', 1)])
+# curpets.executemany("insert into pets (name, type, age) values (%s,%s,%s)", 
+#                 [('zoe','zebra',4),
+#                 ('samantha','snake',2),
+#                 ('fred', 'frog', 1),
+#                 ('laika', 'dog', 0),
+#                 ('lucy', 'dog', 2)])
 curpets.executemany("insert into accessories (name) values (%s)", 
                     [("food"),
                      ("food"),
