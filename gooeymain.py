@@ -252,7 +252,7 @@ class PetStoreGUI:
                     dbpets.commit()
                     self.store_screen()
                 except:
-                    messagebox.showerror("error", 'store too full')
+                    messagebox.showerror("error", 'Pet is invalid or store is full')
                     dbpets.rollback()
             else:
                 messagebox.showerror("Error", "All fields must be filled in.")
